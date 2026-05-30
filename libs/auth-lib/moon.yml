@@ -1,18 +1,14 @@
 # Who this project is and what stack it belongs to
 $schema: "https://moonrepo.dev/schemas/project.json"
 
-id: "http-gateway"
+id: "auth-lib"
 language: "rust"
 stack: "backend"
-layer: "application" # or 'library' if it's a shared crate
+layer: "library" # or 'library' if it's a shared crate
 
 project:
-  name: "Http Gateway"
-  description: "simple gateway module routing and sanitizing http requests from outside into internal gRPC network"
-
-dependsOn:
-  - "config-lib"
-  - "auth-lib"
+  name: "Auth lib"
+  description: "Libe used for authentification and user managment"
 
 # Tasks: the commands Moon knows how to run for this project
 tasks:
@@ -22,7 +18,7 @@ tasks:
       - "src/**/*.rs"
       - "Cargo.toml"
     outputs:
-      - "target/debug/http-gateway"
+      - "target/debug/auth-lib"
 
   test:
     command: "cargo test"
