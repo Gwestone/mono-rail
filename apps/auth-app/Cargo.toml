@@ -1,16 +1,13 @@
-# Cargo.toml.tera
 [package]
-name = "http-gateway"
+name = "auth-app"
 version = "0.1.0"
 edition = "2021"
 
 [dependencies]
 auth-lib   = { path = "../../libs/auth-lib" }
-axum       = "0.8.9"
 config-lib = { path = "../../libs/config-lib" }
+db-lib     = { path = "../../libs/db-lib" }
 grpc-lib   = { path = "../../libs/grpc-lib" }
-tonic      = "0.14"
-serde      = { version = "1", features = ["derive"] }
+user-lib   = { path = "../../libs/user-lib" }
 tokio      = { version = "1", features = ["full"] }
-tracing    = "0.1"
-tracing-subscriber = "0.3.23"
+tonic      = "0.14"

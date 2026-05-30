@@ -2,7 +2,6 @@ use axum::{extract::State, http::StatusCode, routing::post, Json, Router};
 use serde::{Deserialize, Serialize};
 
 use crate::app_state::AuthAppState;
-use crate::domain::{LoginUserInput, LoginUserUseCase, RegisterUserInput, RegisterUserUseCase};
 
 /// Builds the auth sub-router. Requires [`AuthAppState`] as axum state.
 pub fn auth_router() -> Router<AuthAppState> {
@@ -16,33 +15,43 @@ async fn register(
     State(state): State<AuthAppState>,
     Json(payload): Json<RegisterPayload>,
 ) -> (StatusCode, Json<RegisterResponse>) {
-    let use_case = RegisterUserUseCase {
-        user_repository: state.user_repository.clone(),
-        crypto: state.crypto.clone(),
-    };
+    let mut client = state.auth_client.clone();
 
-    match use_case
-        .execute(RegisterUserInput {
-            username: payload.username,
-            email: payload.email,
-            password: payload.password,
-        })
-        .await
-    {
-        Ok(result) => (
-            StatusCode::CREATED,
-            Json(RegisterResponse {
-                user_id: result.user_id.to_string(),
-                username: result.username,
-                email: result.email,
-            }),
-        ),
-        Err(message) => (
-            StatusCode::UNPROCESSABLE_ENTITY,
+    let request = tonic::Request::new(grpc_lib::RegisterRequest {
+        username: payload.username,
+        email: payload.email,
+        password: payload.password,
+    });
+
+    match client.register(request).await {
+        Ok(response) => {
+            let res = response.into_inner();
+            if !res.error.is_empty() {
+                (
+                    StatusCode::UNPROCESSABLE_ENTITY,
+                    Json(RegisterResponse {
+                        user_id: String::new(),
+                        username: String::new(),
+                        email: res.error,
+                    }),
+                )
+            } else {
+                (
+                    StatusCode::CREATED,
+                    Json(RegisterResponse {
+                        user_id: res.user_id,
+                        username: res.username,
+                        email: res.email,
+                    }),
+                )
+            }
+        }
+        Err(status) => (
+            StatusCode::INTERNAL_SERVER_ERROR,
             Json(RegisterResponse {
                 user_id: String::new(),
                 username: String::new(),
-                email: message,
+                email: format!("gRPC connection error: {}", status.message()),
             }),
         ),
     }
@@ -53,26 +62,31 @@ async fn login(
     State(state): State<AuthAppState>,
     Json(payload): Json<LoginPayload>,
 ) -> (StatusCode, Json<LoginResponse>) {
-    let use_case = LoginUserUseCase {
-        user_repository: state.user_repository.clone(),
-        crypto: state.crypto.clone(),
-        token: state.token.clone(),
-    };
+    let mut client = state.auth_client.clone();
 
-    match use_case
-        .execute(LoginUserInput {
-            email: payload.email,
-            password: payload.password,
-        })
-        .await
-    {
-        Ok(result) => (
-            StatusCode::OK,
-            Json(LoginResponse::success(result.access_token)),
-        ),
-        Err(message) => (
-            StatusCode::UNAUTHORIZED,
-            Json(LoginResponse::error(message)),
+    let request = tonic::Request::new(grpc_lib::LoginRequest {
+        email: payload.email,
+        password: payload.password,
+    });
+
+    match client.login(request).await {
+        Ok(response) => {
+            let res = response.into_inner();
+            if !res.error.is_empty() {
+                (
+                    StatusCode::UNAUTHORIZED,
+                    Json(LoginResponse::error(res.error)),
+                )
+            } else {
+                (
+                    StatusCode::OK,
+                    Json(LoginResponse::success(res.access_token)),
+                )
+            }
+        }
+        Err(status) => (
+            StatusCode::INTERNAL_SERVER_ERROR,
+            Json(LoginResponse::error(format!("gRPC connection error: {}", status.message()))),
         ),
     }
 }

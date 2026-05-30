@@ -1,22 +1,19 @@
-use std::sync::Arc;
-
-use auth_lib::{AuthAppState, BcryptCryptoService, JwtTokenService};
+use auth_lib::AuthAppState;
 use config_lib::AppConfig;
-use db_lib::PgPool;
-use user_lib::PostgresUserRepository;
+use grpc_lib::{connect_grpc, AuthServiceClient};
 
 use crate::app_state::AppState;
 
-/// Wires all concrete implementations together and returns the application state.
-pub fn build_app_state(pool: PgPool, config: AppConfig) -> AppState {
-    let user_repository = Arc::new(PostgresUserRepository::new(pool.clone()));
-    let crypto = Arc::new(BcryptCryptoService);
-    let token = Arc::new(JwtTokenService::new(
-        config.jwt_secret.clone(),
-        config.jwt_expires_in_seconds,
-    ));
+/// Wires the gRPC client connection and returns the AppState.
+pub async fn build_app_state(config: AppConfig) -> Result<AppState, String> {
+    let auth_service_url = std::env::var("AUTH_SERVICE_URL")
+        .unwrap_or_else(|_| "http://localhost:50051".to_string());
 
-    let auth_state = AuthAppState { user_repository, crypto, token };
+    // Connect to the gRPC auth-service (lazily)
+    let channel = connect_grpc(auth_service_url)?;
+    let auth_client = AuthServiceClient::new(channel);
 
-    AppState::new(pool, config, auth_state)
+    let auth_state = AuthAppState { auth_client };
+
+    Ok(AppState::new(config, auth_state))
 }

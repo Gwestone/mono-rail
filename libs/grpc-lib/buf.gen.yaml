@@ -1,0 +1,6 @@
+version: v2
+plugins:
+  - local: protoc-gen-prost
+    out: src/generated
+  - local: protoc-gen-tonic
+    out: src/generated

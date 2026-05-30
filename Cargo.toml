@@ -2,9 +2,11 @@
 members = [
     "apps/http-gateway",
     "apps/core-backend",
+    "apps/auth-app",
     "libs/config-lib",
     "libs/db-lib",
-    "libs/user-lib"
+    "libs/user-lib",
+    "libs/grpc-lib",
 ]
 
 resolver = "2"

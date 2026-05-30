@@ -2,7 +2,6 @@ use std::sync::Arc;
 
 use axum::extract::FromRef;
 use config_lib::AppConfig;
-use db_lib::PgPool;
 
 use auth_lib::AuthAppState;
 
@@ -15,7 +14,6 @@ pub struct AppState {
 }
 
 struct AppStateInner {
-    pub db: PgPool,
     pub config: AppConfig,
     pub adapters: Adapters,
 }
@@ -25,20 +23,17 @@ struct Adapters {
 }
 
 impl AppState {
-    pub fn new(db: PgPool, config: AppConfig, auth: AuthAppState) -> Self {
+    /// Creates a new instance of [`AppState`].
+    pub fn new(config: AppConfig, auth: AuthAppState) -> Self {
         Self {
             inner: Arc::new(AppStateInner {
-                db,
                 config,
                 adapters: Adapters { auth },
             }),
         }
     }
 
-    pub fn db(&self) -> &PgPool {
-        &self.inner.db
-    }
-
+    /// Accesses the application configuration.
     pub fn config(&self) -> &AppConfig {
         &self.inner.config
     }

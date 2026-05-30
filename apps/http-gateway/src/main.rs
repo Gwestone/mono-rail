@@ -3,7 +3,6 @@ mod di;
 mod http_router;
 
 use config_lib::AppConfig;
-use db_lib::create_pg_pool;
 use di::build_app_state;
 use http_router::http_router;
 
@@ -15,11 +14,8 @@ async fn main() -> Result<(), String> {
     // Initialise structured logging
     tracing_subscriber::fmt::init();
 
-    // Create the database connection pool
-    let pool = create_pg_pool(&config.database_url).await?;
-
-    // Wire dependencies
-    let state = build_app_state(pool, config);
+    // Wire dependencies (creates the gRPC connection to auth-service)
+    let state = build_app_state(config).await?;
 
     // Build the fully-wired router (state is consumed inside)
     let app = http_router(state.clone());
