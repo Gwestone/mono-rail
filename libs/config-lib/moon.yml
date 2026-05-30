@@ -17,8 +17,6 @@ tasks:
     inputs:
       - "src/**/*.rs"
       - "Cargo.toml"
-    outputs:
-      - "target/debug/config-lib"
 
   test:
     command: "cargo test"
@@ -28,7 +26,10 @@ tasks:
 
   lint:
     command: "cargo clippy"
-    args: "-- -D warnings"
+    args:
+      - "--"
+      - "-D"
+      - "warnings"
 
   dev:
     command: "cargo run"
