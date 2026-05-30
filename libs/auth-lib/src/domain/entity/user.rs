@@ -1,0 +1,10 @@
+use uuid::Uuid;
+
+/// Core auth domain entity.
+#[derive(Debug, Clone, sqlx::FromRow)]
+pub struct User {
+    pub id: Uuid,
+    pub username: String,
+    pub email: String,
+    pub password_hash: String,
+}

@@ -1,0 +1,41 @@
+# Who this project is and what stack it belongs to
+$schema: 'https://moonrepo.dev/schemas/project.json'
+
+id: 'user-lib'
+language: 'rust'
+stack: 'backend'
+layer: 'library'  # or 'library' if it's a shared crate
+
+project:
+  name: 'User lib'
+  description: 'Manage users inside db'
+
+# Tasks: the commands Moon knows how to run for this project
+tasks:
+  build:
+    command: 'cargo build'
+    inputs:
+      - 'src/**/*.rs'
+      - 'Cargo.toml'
+    outputs:
+      - 'target/debug/user-lib'
+
+  test:
+    command: 'cargo test'
+    inputs:
+      - 'src/**/*.rs'
+      - 'tests/**/*.rs'
+
+  lint:
+    command: 'cargo clippy'
+    args:
+      - '--'
+      - '-D'
+      - 'warnings'
+
+  dev:
+    command: 'cargo run'
+    preset: 'server'  # marks it as persistent, streams output
+
+# If this crate depends on another project in the monorepo
+

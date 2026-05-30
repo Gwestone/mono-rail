@@ -1,10 +1,11 @@
-use axum::{http::StatusCode, routing::post, Json, Router};
-use serde::Serialize;
+use axum::{extract::State, http::StatusCode, routing::post, Json, Router};
+use serde::{Deserialize, Serialize};
 
-use crate::domain::{LoginUserDto, RegisterUserDto};
+use crate::app_state::AuthAppState;
+use crate::domain::{LoginUserInput, LoginUserUseCase, RegisterUserInput, RegisterUserUseCase};
 
-/// Builds the auth sub-router mounted at `/auth`.
-pub fn auth_router() -> Router {
+/// Builds the auth sub-router. Requires [`AuthAppState`] as axum state.
+pub fn auth_router() -> Router<AuthAppState> {
     Router::new()
         .route("/auth/register", post(register))
         .route("/auth/login", post(login))
@@ -12,27 +13,110 @@ pub fn auth_router() -> Router {
 
 /// POST /auth/register
 async fn register(
-    Json(payload): Json<RegisterUserDto>,
-) -> (StatusCode, Json<AuthResponse>) {
-    // TODO: delegate to use-case / service layer
-    let response = AuthResponse {
-        message: format!("User '{}' registered", payload.username),
+    State(state): State<AuthAppState>,
+    Json(payload): Json<RegisterPayload>,
+) -> (StatusCode, Json<RegisterResponse>) {
+    let use_case = RegisterUserUseCase {
+        get_user: state.get_user.clone(),
+        crypto: state.crypto.clone(),
     };
-    (StatusCode::CREATED, Json(response))
+
+    match use_case
+        .execute(RegisterUserInput {
+            username: payload.username,
+            email: payload.email,
+            password: payload.password,
+        })
+        .await
+    {
+        Ok(result) => (
+            StatusCode::CREATED,
+            Json(RegisterResponse {
+                user_id: result.user_id.to_string(),
+                username: result.username,
+                email: result.email,
+            }),
+        ),
+        Err(message) => (
+            StatusCode::UNPROCESSABLE_ENTITY,
+            Json(RegisterResponse {
+                user_id: String::new(),
+                username: String::new(),
+                email: message,
+            }),
+        ),
+    }
 }
 
 /// POST /auth/login
 async fn login(
-    Json(payload): Json<LoginUserDto>,
-) -> (StatusCode, Json<AuthResponse>) {
-    // TODO: delegate to use-case / service layer
-    let response = AuthResponse {
-        message: format!("User '{}' logged in", payload.email),
+    State(state): State<AuthAppState>,
+    Json(payload): Json<LoginPayload>,
+) -> (StatusCode, Json<LoginResponse>) {
+    let use_case = LoginUserUseCase {
+        get_user: state.get_user.clone(),
+        crypto: state.crypto.clone(),
+        token: state.token.clone(),
     };
-    (StatusCode::OK, Json(response))
+
+    match use_case
+        .execute(LoginUserInput {
+            email: payload.email,
+            password: payload.password,
+        })
+        .await
+    {
+        Ok(result) => (
+            StatusCode::OK,
+            Json(LoginResponse::success(result.access_token)),
+        ),
+        Err(message) => (
+            StatusCode::UNAUTHORIZED,
+            Json(LoginResponse::error(message)),
+        ),
+    }
+}
+
+// ─── Request / response schemas ──────────────────────────────────────────────
+
+#[derive(Deserialize)]
+struct RegisterPayload {
+    username: String,
+    email: String,
+    password: String,
 }
 
 #[derive(Serialize)]
-struct AuthResponse {
-    message: String,
+struct RegisterResponse {
+    user_id: String,
+    username: String,
+    email: String,
+}
+
+#[derive(Deserialize)]
+struct LoginPayload {
+    email: String,
+    password: String,
+}
+
+#[derive(Serialize)]
+struct LoginResponse {
+    access_token: Option<String>,
+    error: Option<String>,
+}
+
+impl LoginResponse {
+    fn success(token: String) -> Self {
+        Self {
+            access_token: Some(token),
+            error: None,
+        }
+    }
+
+    fn error(message: String) -> Self {
+        Self {
+            access_token: None,
+            error: Some(message),
+        }
+    }
 }

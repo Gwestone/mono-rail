@@ -5,9 +5,11 @@ version = "0.1.0"
 edition = "2021"
 
 [dependencies]
-axum = "0.8.9"
-serde = { version = "1.0.228", features = ["derive"] }
-tokio = { version = "1.52.3", features = ["full"] }
-tracing-subscriber = "0.3.23"
+auth-lib   = { path = "../../libs/auth-lib" }
+axum       = "0.8.9"
 config-lib = { path = "../../libs/config-lib" }
-auth-lib = { path = "../../libs/auth-lib" }
+db-lib     = { path = "../../libs/db-lib" }
+serde      = { version = "1", features = ["derive"] }
+tokio      = { version = "1", features = ["full"] }
+tracing    = "0.1"
+tracing-subscriber = "0.3.23"

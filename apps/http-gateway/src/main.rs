@@ -1,25 +1,37 @@
+mod app_state;
+mod di;
 mod http_router;
 
-use axum::Router;
 use config_lib::AppConfig;
+use db_lib::create_pg_pool;
+use di::build_app_state;
 use http_router::http_router;
 
 #[tokio::main]
 async fn main() -> Result<(), String> {
-    //load configs
+    // Load configuration from environment / .env file
     let config = AppConfig::load()?;
 
-    // initialize tracing
+    // Initialise structured logging
     tracing_subscriber::fmt::init();
 
-    // build our application with a route
-    let app = Router::new().merge(http_router());
+    // Create the database connection pool
+    let pool = create_pg_pool(&config.database_url).await?;
 
-    // run our app with hyper, listening globally on port 3000
-    let listener = tokio::net::TcpListener::bind(config.server_url)
+    // Wire dependencies
+    let state = build_app_state(pool, config);
+
+    // Build the fully-wired router (state is consumed inside)
+    let app = http_router(state.clone());
+
+    // Start the server
+    let listener = tokio::net::TcpListener::bind(state.config().server_url.clone())
         .await
-        .unwrap();
-    axum::serve(listener, app).await.unwrap();
+        .map_err(|e| format!("Failed to bind: {e}"))?;
 
-    Ok(())
+    tracing::info!("Listening on {}", state.config().server_url);
+
+    axum::serve(listener, app)
+        .await
+        .map_err(|e| format!("Server error: {e}"))
 }
