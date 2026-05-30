@@ -1,9 +1,8 @@
 use std::sync::Arc;
-
 use uuid::Uuid;
+use user_lib::{User, UserRepository};
 
-use crate::domain::entity::User;
-use crate::domain::ports::{CryptoPort, GetUserPort};
+use crate::domain::ports::CryptoPort;
 
 /// Response returned after a successful registration.
 #[derive(Debug)]
@@ -22,7 +21,7 @@ pub struct RegisterUserInput {
 
 /// Creates a new user account.
 pub struct RegisterUserUseCase {
-    pub get_user: Arc<dyn GetUserPort>,
+    pub user_repository: Arc<dyn UserRepository>,
     pub crypto: Arc<dyn CryptoPort>,
 }
 
@@ -35,7 +34,7 @@ impl RegisterUserUseCase {
         &self,
         input: RegisterUserInput,
     ) -> Result<RegisterUserResponse, String> {
-        let already_exists = self.get_user.exists_by_email(&input.email).await?;
+        let already_exists = self.user_repository.exists_by_email(&input.email).await?;
         if already_exists {
             return Err(format!("Email '{}' is already registered", input.email));
         }
@@ -48,7 +47,7 @@ impl RegisterUserUseCase {
             password_hash,
         };
 
-        let saved = self.get_user.save(user).await?;
+        let saved = self.user_repository.create(user).await?;
 
         Ok(RegisterUserResponse {
             user_id: saved.id,

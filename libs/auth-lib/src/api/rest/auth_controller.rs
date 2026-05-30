@@ -17,7 +17,7 @@ async fn register(
     Json(payload): Json<RegisterPayload>,
 ) -> (StatusCode, Json<RegisterResponse>) {
     let use_case = RegisterUserUseCase {
-        get_user: state.get_user.clone(),
+        user_repository: state.user_repository.clone(),
         crypto: state.crypto.clone(),
     };
 
@@ -54,7 +54,7 @@ async fn login(
     Json(payload): Json<LoginPayload>,
 ) -> (StatusCode, Json<LoginResponse>) {
     let use_case = LoginUserUseCase {
-        get_user: state.get_user.clone(),
+        user_repository: state.user_repository.clone(),
         crypto: state.crypto.clone(),
         token: state.token.clone(),
     };

@@ -51,6 +51,7 @@ dependencies = [
  "serde",
  "sqlx",
  "tokio",
+ "user-lib",
  "uuid",
 ]
 
@@ -637,6 +638,7 @@ dependencies = [
  "tokio",
  "tracing",
  "tracing-subscriber",
+ "user-lib",
 ]
 
 [[package]]
@@ -1979,6 +1981,16 @@ dependencies = [
  "idna",
  "percent-encoding",
  "serde",
+]
+
+[[package]]
+name = "user-lib"
+version = "0.1.0"
+dependencies = [
+ "async-trait",
+ "serde",
+ "sqlx",
+ "uuid",
 ]
 
 [[package]]

@@ -1,6 +1,7 @@
 use std::sync::Arc;
+use user_lib::UserRepository;
 
-use crate::domain::ports::{CryptoPort, GetUserPort, TokenPort};
+use crate::domain::ports::{CryptoPort, TokenPort};
 
 /// Slice of application state consumed by the auth sub-router.
 ///
@@ -8,7 +9,7 @@ use crate::domain::ports::{CryptoPort, GetUserPort, TokenPort};
 /// for this type, so axum can extract it directly in handlers.
 #[derive(Clone)]
 pub struct AuthAppState {
-    pub get_user: Arc<dyn GetUserPort>,
+    pub user_repository: Arc<dyn UserRepository>,
     pub crypto: Arc<dyn CryptoPort>,
     pub token: Arc<dyn TokenPort>,
 }

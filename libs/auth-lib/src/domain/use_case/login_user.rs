@@ -1,6 +1,7 @@
 use std::sync::Arc;
+use user_lib::UserRepository;
 
-use crate::domain::ports::{CryptoPort, GetUserPort, TokenPort};
+use crate::domain::ports::{CryptoPort, TokenPort};
 
 /// Response returned after a successful login.
 #[derive(Debug)]
@@ -16,7 +17,7 @@ pub struct LoginUserInput {
 
 /// Authenticates an existing user and returns a signed JWT.
 pub struct LoginUserUseCase {
-    pub get_user: Arc<dyn GetUserPort>,
+    pub user_repository: Arc<dyn UserRepository>,
     pub crypto: Arc<dyn CryptoPort>,
     pub token: Arc<dyn TokenPort>,
 }
@@ -31,7 +32,7 @@ impl LoginUserUseCase {
         input: LoginUserInput,
     ) -> Result<LoginUserResponse, String> {
         let user = self
-            .get_user
+            .user_repository
             .find_by_email(&input.email)
             .await?
             .ok_or_else(|| "Invalid credentials".to_string())?;

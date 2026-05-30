@@ -5,4 +5,4 @@ pub mod persistence;
 
 pub use api::auth_router;
 pub use app_state::AuthAppState;
-pub use persistence::{BcryptCryptoService, JwtTokenService, PostgresUserRepository};
+pub use persistence::{BcryptCryptoService, JwtTokenService};

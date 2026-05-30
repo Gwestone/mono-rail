@@ -9,6 +9,7 @@ auth-lib   = { path = "../../libs/auth-lib" }
 axum       = "0.8.9"
 config-lib = { path = "../../libs/config-lib" }
 db-lib     = { path = "../../libs/db-lib" }
+user-lib   = { path = "../../libs/user-lib" }
 serde      = { version = "1", features = ["derive"] }
 tokio      = { version = "1", features = ["full"] }
 tracing    = "0.1"
