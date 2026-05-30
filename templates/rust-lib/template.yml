@@ -1,0 +1,19 @@
+$schema: ../../.moon/cache/schemas/template.json
+title: Simple Rust library
+description: Simple hello world rust library.
+destination: "backend/crates/[name]"
+
+variables:
+  name:
+    type: string
+    default: "my-lib"
+    prompt: "What is the lib name?"
+    required: true
+  title:
+    type: string
+    prompt: "Human readable title?"
+    default: "My lib"
+  description:
+    type: string
+    prompt: "What does this crate do?"
+    default: ""

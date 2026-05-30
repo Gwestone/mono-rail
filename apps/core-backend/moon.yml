@@ -1,0 +1,38 @@
+# Who this project is and what stack it belongs to
+$schema: 'https://moonrepo.dev/schemas/project.json'
+
+id: 'core-backend'
+language: 'rust'
+stack: 'backend'
+layer: 'application'  # or 'library' if it's a shared crate
+
+project:
+  title: 'Core backend app'
+  description: 'Core backend app contains all buisness logic except special cases, such as stream-receiver, stream-manager, stream-server, auth, chat, etc'
+
+# Tasks: the commands Moon knows how to run for this project
+tasks:
+  build:
+    command: 'cargo build'
+    inputs:
+      - 'src/**/*.rs'
+      - 'Cargo.toml'
+    outputs:
+      - 'target/debug/core-backend'
+
+  test:
+    command: 'cargo test'
+    inputs:
+      - 'src/**/*.rs'
+      - 'tests/**/*.rs'
+
+  lint:
+    command: 'cargo clippy'
+    args: '-- -D warnings'
+
+  dev:
+    command: 'cargo run'
+    preset: 'server'  # marks it as persistent, streams output
+
+# If this crate depends on another project in the monorepo
+

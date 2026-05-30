@@ -1,0 +1,4 @@
+# Cargo.toml.tera
+[package]
+name = "core-backend"
+version = "0.1.0"

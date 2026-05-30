@@ -1,0 +1,38 @@
+# Who this project is and what stack it belongs to
+$schema: "https://moonrepo.dev/schemas/project.json"
+
+id: "config-lib"
+language: "rust"
+stack: "backend"
+layer: "library" # or 'library' if it's a shared crate
+
+project:
+  name: "Config library"
+  description: "Config library for shared configs among the libs and apps, used for data such as DB connection credentials, API Tokens, Ports numbers etc"
+
+# Tasks: the commands Moon knows how to run for this project
+tasks:
+  build:
+    command: "cargo build"
+    inputs:
+      - "src/**/*.rs"
+      - "Cargo.toml"
+    outputs:
+      - "target/debug/config-lib"
+
+  test:
+    command: "cargo test"
+    inputs:
+      - "src/**/*.rs"
+      - "tests/**/*.rs"
+
+  lint:
+    command: "cargo clippy"
+    args: "-- -D warnings"
+
+  dev:
+    command: "cargo run"
+    preset: "server" # marks it as persistent, streams output
+
+
+# If this crate depends on another project in the monorepo

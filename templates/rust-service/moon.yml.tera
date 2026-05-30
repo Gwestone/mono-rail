@@ -1,0 +1,43 @@
+# Who this project is and what stack it belongs to
+$schema: 'https://moonrepo.dev/schemas/project.json'
+
+id: '{{ name }}'
+language: 'rust'
+stack: 'backend'
+layer: 'application'  # or 'library' if it's a shared crate
+
+project:
+  name: '{{ title }}'
+  description: '{{ description }}'
+
+# Tasks: the commands Moon knows how to run for this project
+tasks:
+  build:
+    command: 'cargo build'
+    inputs:
+      - 'src/**/*.rs'
+      - 'Cargo.toml'
+    outputs:
+      - 'target/debug/{{ name }}'
+
+  test:
+    command: 'cargo test'
+    inputs:
+      - 'src/**/*.rs'
+      - 'tests/**/*.rs'
+
+  lint:
+    command: 'cargo clippy'
+    args: '-- -D warnings'
+
+  dev:
+    command: 'cargo run'
+    preset: 'server'  # marks it as persistent, streams output
+
+# If this crate depends on another project in the monorepo
+{% if depends_on %}
+dependsOn:
+  {% for dep in depends_on %}
+  - '{{ dep }}'
+  {% endfor %}
+{% endif %}
